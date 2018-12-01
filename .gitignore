@@ -1,0 +1,17 @@
+# Idea Project
+*.iml
+.idea/
+
+# yarn
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build Temp
+.DS_Store
+docs/.build/
+docs/.vuepress/public/
+
+# Notebook
+*.nb
