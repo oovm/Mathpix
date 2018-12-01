@@ -4,7 +4,7 @@
 (*Declare*)
 
 
-BeginPackage["Mathpix"];
+BeginPackage["Mathpix`"];
 $MathpixToken::usage = "";
 Mathpix::usage = "";
 Begin["`Private`"];
@@ -12,19 +12,18 @@ Begin["`Private`"];
 
 (* ::Section:: *)
 (*API*)
-
-
-$MathpixToken = {"ID", "Key"} -> {
-	"trial",
-	"34f1a4cea0eaca8540c95908b4dc84ab"
-} // AssociationThread;
+$Tokens = {
+	{"trial", "34f1a4cea0eaca8540c95908b4dc84ab"},
+	{"mathpix", "139ee4b61be2e4abcfb1238d9eb99902"}
+};
+$MathpixToken = $Tokens[[2]];
 MathpixHTTP[img_] := Block[
 	{jpeg, api, header, body},
 	jpeg = "data:image/jpg;base64," <> ExportString[img, {"Base64", "JPEG"}];
 	api = "https://api.mathpix.com/v3/latex";
 	header = {
-		"app_id" -> $MathpixToken["ID"],
-		"app_key" -> $MathpixToken["Key"],
+		"app_id" -> First@$MathpixToken,
+		"app_key" -> Last@$MathpixToken,
 		"Content-type" -> "application/json"
 	};
 	body = ExportString[{
@@ -49,17 +48,17 @@ MathpixConfidence[raw_] := "TODO";
 (*Interface*)
 
 
-Mathpix[path_String, o___] := Mathpix[Import@path, o];
-Mathpix[img_Image, method_ : N] := MathpixInterface[MathpixPOST@MathpixHTTP@img];
-Mathpix[obj_Association, method_ : N] := MathpixInterface[First@obj];
+Mathpix[path_String, method_] := Mathpix[Import@path, method];
+Mathpix[img_Image, method_ : N] := MathpixInterface[MathpixPOST@MathpixHTTP@img, method];
+Mathpix[obj_Association, method_ : N] := MathpixInterface[obj, method];
 MathpixInterface[raw_Association, m_] := Block[
-	{},(*Todo: Sow Error*)
+	{}, (*Todo: Sow Error*)
 	Switch[m,
 		N, MathpixNormal@raw,
 		E, MathpixExpression@raw,
 		D, MathpixDisplay@raw,
 		C, MathpixConfidence[raw],
-		_, Iconize[raw, "Mathpix"]
+		_, Iconize[raw, "MathpixAPI"]
 	]
 ];
 

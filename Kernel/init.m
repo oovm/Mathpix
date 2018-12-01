@@ -1,0 +1,3 @@
+(* ::Package:: *)
+
+Get["Mathpix`Mathpix`"];
