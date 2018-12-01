@@ -5,7 +5,6 @@
 
 
 BeginPackage["Mathpix`"];
-$MathpixToken::usage = "";
 Mathpix::usage = "";
 Begin["`Private`"];
 
@@ -16,7 +15,11 @@ $Tokens = {
 	{"trial", "34f1a4cea0eaca8540c95908b4dc84ab"},
 	{"mathpix", "139ee4b61be2e4abcfb1238d9eb99902"}
 };
-$MathpixToken = $Tokens[[2]];
+If[
+	MissingQ@PersistentValue["Mathpix", "Local"],
+	PersistentValue["Mathpix", "Local"] = $Tokens[[2]];
+];
+$MathpixToken = PersistentValue["Mathpix", "Local"];
 MathpixHTTP[img_] := Block[
 	{jpeg, api, header, body},
 	jpeg = "data:image/jpg;base64," <> ExportString[img, {"Base64", "JPEG"}];
@@ -38,7 +41,15 @@ MathpixHTTP[img_] := Block[
 
 
 MathpixPOST[http_HTTPRequest] := URLExecute[http, Interactive -> False, "RawJSON"];
-MathpixNormal[raw_] := raw["latex"];
+$LaTeXRefine = {
+	" _ " -> "_",
+	" ^ " -> "^",
+	"{ " -> "{",
+	" }" -> "}",
+	"( " -> "(",
+	" )" -> ")"
+};
+MathpixNormal[raw_] := Fold[StringReplace, raw["latex"], $LaTeXRefine];
 MathpixDisplay[raw_] := DisplayForm@ImportString@raw["mathml"];
 MathpixExpression[raw_] := InputForm@WolframAlpha[raw["wolfram"], "WolframParse"];
 MathpixConfidence[raw_] := "TODO";
