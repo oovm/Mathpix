@@ -11,6 +11,8 @@ Begin["`Private`"];
 
 (* ::Section:: *)
 (*API*)
+
+
 $Tokens = {
 	{"trial", "34f1a4cea0eaca8540c95908b4dc84ab"},
 	{"mathpix", "139ee4b61be2e4abcfb1238d9eb99902"}
@@ -30,8 +32,20 @@ MathpixHTTP[img_] := Block[
 		"Content-type" -> "application/json"
 	};
 	body = ExportString[{
-		"src" -> jpeg, "formats" -> {"latex" -> "simplified", "mathml" -> True, "wolfram" -> True
-		}}, "json"];
+		"src" -> jpeg,
+		"ocr" -> {"math", "text"},
+		"formats" -> {
+			"mathml" -> True,
+			"wolfram" -> True
+		},
+		"format_options" -> <|
+			"latex_styled" -> <|
+				"transforms" -> {"rm_spaces"},
+				"math_delims" -> {"$", "$"},
+				"displaymath_delims" -> {"$$", "$$"}
+			|>
+		|>
+	}, "json"];
 	HTTPRequest[api, <|"Headers" -> header, "Body" -> body, Method -> "POST"|>]
 ];
 
@@ -49,7 +63,14 @@ $LaTeXRefine = {
 	"( " -> "(",
 	" )" -> ")"
 };
-MathpixNormal[raw_] := Fold[StringReplace, raw["latex"], $LaTeXRefine];
+(*MathpixNormal[raw_] := Fold[StringReplace, raw["latex"], $LaTeXRefine];*)
+MathpixNormal[raw_] := Module[
+	{ans = raw["latex_styled"], png},
+	png = Import["https://latex.codecogs.com/gif.latex?" <> URLEncode@ans, "GIF"];
+	Echo["\n", "Preview:"    ];
+	Print@png;
+	ans
+];
 MathpixDisplay[raw_] := DisplayForm@ImportString@raw["mathml"];
 MathpixExpression[raw_] := InputForm@WolframAlpha[raw["wolfram"], "WolframParse"];
 MathpixConfidence[raw_] := "TODO";
@@ -63,14 +84,17 @@ Mathpix[path_String, method_] := Mathpix[Import@path, method];
 Mathpix[img_Image, method_ : N] := MathpixInterface[MathpixPOST@MathpixHTTP@img, method];
 Mathpix[obj_Association, method_ : N] := MathpixInterface[obj, method];
 MathpixInterface[raw_Association, m_] := Block[
-	{}, (*Todo: Sow Error*)
-	Switch[m,
+	{ans},
+	If[raw["error"] != "", Echo[raw["error"], "Error: "]];
+	ans = Switch[m,
 		N, MathpixNormal@raw,
 		E, MathpixExpression@raw,
 		D, MathpixDisplay@raw,
 		C, MathpixConfidence[raw],
 		_, Iconize[raw, "MathpixAPI"]
-	]
+	];
+	CopyToClipboard@ans;
+	ans
 ];
 
 
