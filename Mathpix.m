@@ -31,7 +31,7 @@ MathpixHTTP[img_] := Block[
 		"app_key" -> Last@$MathpixToken,
 		"Content-type" -> "application/json"
 	};
-	body = ExportString[{
+	body = {
 		"src" -> jpeg,
 		"ocr" -> {"math", "text"},
 		"formats" -> {
@@ -45,8 +45,8 @@ MathpixHTTP[img_] := Block[
 				"displaymath_delims" -> {"$$", "$$"}
 			|>
 		|>
-	}, "json"];
-	HTTPRequest[api, <|"Headers" -> header, "Body" -> body, Method -> "POST"|>]
+	};
+	HTTPRequest[api, <|"Headers" -> header, "Body" -> ExportString[body, "json"], Method -> "POST"|>]
 ];
 
 
@@ -67,7 +67,7 @@ $LaTeXRefine = {
 MathpixNormal[raw_] := Module[
 	{ans = raw["latex_styled"], png},
 	png = Import["https://latex.codecogs.com/gif.latex?" <> URLEncode@ans, "GIF"];
-	Echo["\n", "Preview:"    ];
+	Echo["", "Preview:"];
 	Print@png;
 	ans
 ];

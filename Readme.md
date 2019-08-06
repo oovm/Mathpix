@@ -3,13 +3,13 @@
 Import via url (Recommend):
 
 ```Mathematica
-Import@"https://raw.githubusercontent.com/Moe-Net/Mathpix/master/Mathpix.m"
+Import@"https://raw.githubusercontent.com/GalAster/Mathpix/master/Mathpix.m"
 ```
 
 Or use paclet manager (Convenient):
 
 ```
-PacletInstall@"https://github.com/Moe-Net/Mathpix/releases/download/v1.0.0/Mathpix-1.0.0.paclet"
+PacletInstall@"https://github.com/GalAster/Mathpix/releases/download/v1.1.0/Mathpix-1.1.0.paclet"
 ```
 
 Apply for your API Key from https://dashboard.mathpix.com/signup, with one thousand free credits per month
