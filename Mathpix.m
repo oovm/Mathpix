@@ -64,13 +64,7 @@ $LaTeXRefine = {
 	" )" -> ")"
 };
 (*MathpixNormal[raw_] := Fold[StringReplace, raw["latex"], $LaTeXRefine];*)
-MathpixNormal[raw_] := Module[
-	{ans = raw["latex_styled"], png},
-	png = Import["https://latex.codecogs.com/gif.latex?" <> URLEncode@ans, "GIF"];
-	Echo["", "Preview:"];
-	Print@png;
-	ans
-];
+MathpixNormal[raw_] := raw["latex_styled"];
 MathpixDisplay[raw_] := DisplayForm@ImportString@raw["mathml"];
 MathpixExpression[raw_] := InputForm@WolframAlpha[raw["wolfram"], "WolframParse"];
 MathpixConfidence[raw_] := "TODO";
@@ -83,6 +77,21 @@ MathpixConfidence[raw_] := "TODO";
 Mathpix[path_String, method_] := Mathpix[Import@path, method];
 Mathpix[img_Image, method_ : N] := MathpixInterface[MathpixPOST@MathpixHTTP@img, method];
 Mathpix[obj_Association, method_ : N] := MathpixInterface[obj, method];
+Mathpix[imgs_List] := Module[
+	{ ans, parser, ass},
+	parser[img_] := (
+		ass = MathpixPOST[MathpixHTTP@img];
+		If[
+			ass["error"] != "",
+			Echo[ass["error"], "Error: "];
+			Return["\\text{failed}"],
+			Return[ass["latex_styled"]]
+		]
+	);
+	ans = "$$" <> StringRiffle[parser /@ imgs, "$$\n$$"] <> "$$";
+	CopyToClipboard@ans;
+	ans
+];
 MathpixInterface[raw_Association, m_] := Block[
 	{ans},
 	If[raw["error"] != "", Echo[raw["error"], "Error: "]];
