@@ -22,6 +22,8 @@ If[
 	PersistentValue["Mathpix", "Local"] = $Tokens[[2]];
 ];
 $MathpixToken = PersistentValue["Mathpix", "Local"];
+
+
 MathpixHTTP[img_] := Block[
 	{jpeg, api, header, body},
 	jpeg = "data:image/jpg;base64," <> ExportString[img, {"Base64", "JPEG"}];
@@ -50,24 +52,59 @@ MathpixHTTP[img_] := Block[
 ];
 
 
+MathpixTextRequest[img_] := Block[
+	{jpeg, api, header, body},
+	jpeg = "data:image/jpg;base64," <> ExportString[img, {"Base64", "JPEG"}];
+	api = "https://api.mathpix.com/v3/text";
+	header = {
+		"app_id" -> First@$MathpixToken,
+		"app_key" -> Last@$MathpixToken,
+		"Content-type" -> "application/json"
+	};
+	body = {
+		"src" -> jpeg,
+		"format_options" -> <|
+			"latex_styled" -> <|
+				"transforms" -> {"rm_spaces"},
+				"math_delims" -> {"$", "$"},
+				"displaymath_delims" -> {"$$", "$$"}
+			|>
+		|>
+	};
+	HTTPRequest[api, <|"Headers" -> header, "Body" -> ExportString[body, "json"], Method -> "POST"|>]
+];
+
+
 (* ::Section:: *)
 (*Methods*)
 
 
-MathpixPOST[http_HTTPRequest] := URLExecute[http, Interactive -> False, "RawJSON"];
 $LaTeXRefine = {
 	" _ " -> "_",
 	" ^ " -> "^",
 	"{ " -> "{",
 	" }" -> "}",
 	"( " -> "(",
-	" )" -> ")"
+	" )" -> ")",
+	"\\[\n" -> "$$",
+	"\n\\]" -> "$$",
+	"\\(" ->"$",
+	" \\)" ->"$"
 };
-(*MathpixNormal[raw_] := Fold[StringReplace, raw["latex"], $LaTeXRefine];*)
+
+
+MathpixPOST[http_HTTPRequest] := URLExecute[http, "Interactive" -> False, "RawJSON"];
 MathpixNormal[raw_] := raw["latex_styled"];
-MathpixDisplay[raw_] := DisplayForm@ImportString@raw["mathml"];
+MathpixDisplay[raw_] := Module[
+	{url = URLEncode@raw["latex_styled"], png},
+	png = Import["https://latex.codecogs.com/gif.latex?" <> url, "GIF"];
+	Echo["", "Preview:"];
+	Print@png;
+	DisplayForm@ImportString@raw["mathml"]
+];
 MathpixExpression[raw_] := InputForm@WolframAlpha[raw["wolfram"], "WolframParse"];
 MathpixConfidence[raw_] := "TODO";
+MathpixText[raw_] := Fold[StringReplace, raw["text"], $LaTeXRefine];
 
 
 (* ::Section:: *)
@@ -75,7 +112,11 @@ MathpixConfidence[raw_] := "TODO";
 
 
 Mathpix[path_String, method_] := Mathpix[Import@path, method];
-Mathpix[img_Image, method_ : N] := MathpixInterface[MathpixPOST@MathpixHTTP@img, method];
+Mathpix[img_Image, method_ : N] := Switch[
+	method,
+	Text, MathpixInterface[MathpixPOST@MathpixTextRequest@img, method],
+	_ , MathpixInterface[MathpixPOST@MathpixHTTP@img, method]
+];
 Mathpix[obj_Association, method_ : N] := MathpixInterface[obj, method];
 Mathpix[imgs_List] := Module[
 	{ ans, parser, ass},
@@ -100,6 +141,7 @@ MathpixInterface[raw_Association, m_] := Block[
 		E, MathpixExpression@raw,
 		D, MathpixDisplay@raw,
 		C, MathpixConfidence[raw],
+		Text, MathpixText[raw],
 		_, Iconize[raw, "MathpixAPI"]
 	];
 	CopyToClipboard@ans;
