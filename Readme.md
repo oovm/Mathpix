@@ -1,15 +1,9 @@
 # Mathpix
 
-Import via url (Recommend):
+Use paclet manager to install the latest version:
 
 ```Mathematica
-Import@"https://raw.githubusercontent.com/GalAster/Mathpix/master/Mathpix.m"
-```
-
-Or use paclet manager (Convenient):
-
-```
-PacletInstall@"https://github.com/GalAster/Mathpix/releases/download/v1.2.0/Mathpix-1.2.0.paclet"
+ResourceFunction["GitHubInstall"]["GalAster", "Mathpix"]
 ```
 
 Apply for your API Key from https://dashboard.mathpix.com/signup, with one thousand free credits per month
@@ -22,9 +16,9 @@ PersistentValue["Mathpix", "Local"]={"$KeyName","$KeyValue"};
 
 ## Usage
 
-Mathpix receives a `Image`, or the `String` of path to the image, or `MathpixAPI` object
+Mathpix receives a `Image`, or the `String` of path to the image, or `MathpixAPI` object.
 
-And have the following modes: `{N, D, E, "Raw"}`
+And have the following modes: `{N, D, E, Text, "Raw"}`.
 
 ## NormalMode
 

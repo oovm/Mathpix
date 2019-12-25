@@ -80,16 +80,16 @@ MathpixTextRequest[img_] := Block[
 
 
 $LaTeXRefine = {
+	"\\[\n" -> "$$",
+	"\n\\]" -> "$$",
+	"\\(" -> "$",
+	" \\)" -> "$",
 	" _ " -> "_",
 	" ^ " -> "^",
 	"{ " -> "{",
 	" }" -> "}",
 	"( " -> "(",
-	" )" -> ")",
-	"\\[\n" -> "$$",
-	"\n\\]" -> "$$",
-	"\\(" ->"$",
-	" \\)" ->"$"
+	" )" -> ")"
 };
 
 
@@ -102,8 +102,9 @@ MathpixDisplay[raw_] := Module[
 	Print@png;
 	DisplayForm@ImportString@raw["mathml"]
 ];
-MathpixExpression[raw_] := InputForm@WolframAlpha[raw["wolfram"], "WolframParse"];
-MathpixConfidence[raw_] := "TODO";
+(*MathpixExpression[raw_] := InputForm@WolframAlpha[raw["wolfram"], "WolframParse"];*)
+MathpixExpression[raw_] := ToExpression[raw["latex_styled"], TeXForm];
+MathpixConfidence[raw_] := raw["latex_confidence"];
 MathpixText[raw_] := Fold[StringReplace, raw["text"], $LaTeXRefine];
 
 
